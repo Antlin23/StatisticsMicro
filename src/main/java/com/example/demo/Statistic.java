@@ -10,9 +10,6 @@ public class Statistic {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-
-    private Integer averageRate;
-
     public Statistic() {
     }
 
@@ -24,19 +21,10 @@ public class Statistic {
         this.id = id;
     }
 
-    public Integer getAverageRate() {
-        return averageRate;
-    }
-
-    public void setAverageRate(Integer averageRate) {
-        this.averageRate = averageRate;
-    }
-
     @Override
     public String toString() {
         return "Statistic{" +
                 "id=" + id +
-                ", averageRate=" + averageRate +
                 '}';
     }
 }

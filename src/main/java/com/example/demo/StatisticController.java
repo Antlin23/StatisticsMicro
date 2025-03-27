@@ -15,14 +15,17 @@ public class StatisticController {
     private StatisticRepository statisticRepository;
 
     private final WebClient webClient;
+    private final WebClient webClientMovie;
 
-    public StatisticController(WebClient.Builder webClientBuilder, StatisticRepository statisticRepository) {
+
+    public StatisticController(WebClient.Builder webClientBuilder, WebClient.Builder webClientMovieBuilder, StatisticRepository statisticRepository) {
         this.webClient = webClientBuilder.baseUrl("http://localhost:8084").build();
+        this.webClientMovie = webClientMovieBuilder.baseUrl("http://localhost:8083").build();
         this.statisticRepository = statisticRepository;
     }
 
     @GetMapping("/{id}")
-    public List<Review> getMovieRating(@PathVariable("id") Long movieId) {
+    public Double getMovieRating(@PathVariable("id") Long movieId) {
         List<Review> allReviews = webClient.get()
                 .uri("/reviews") // fetch all reviews
                 .retrieve()
@@ -33,7 +36,7 @@ public class StatisticController {
         //If no reviews is found
         if (allReviews == null || allReviews.isEmpty()) {
             System.out.println("No reviews found.");
-            return Collections.emptyList();
+            return null;
         }
 
         // Filter by movieId
@@ -43,21 +46,57 @@ public class StatisticController {
 
         if(filteredReviews.isEmpty()){
             System.out.println("No reviews for that movie found.");
-            return Collections.emptyList();
+            return null;
         }
 
         double rate = 0;
         for (int i = 0; i < filteredReviews.size(); i++){
-
             rate += filteredReviews.get(i).getRating();
-
         }
 
         double averageRate = rate / filteredReviews.size();
 
         System.out.println(averageRate);
 
-        return filteredReviews;
+        return averageRate;
+    }
+
+    @GetMapping("/top")
+    public Movie getTopRatedMovie() {
+        List<Review> allReviews = webClient.get()
+                .uri("/reviews") // fetch all reviews
+                .retrieve()
+                .bodyToFlux(Review.class)
+                .collectList()
+                .block();
+
+        //If no reviews is found
+        if (allReviews == null || allReviews.isEmpty()) {
+            System.out.println("No reviews found.");
+            return null;
+        }
+
+        List<Movie> allMovies = webClientMovie.get()
+                .uri("/movies") // fetch all reviews
+                .retrieve()
+                .bodyToFlux(Movie.class)
+                .collectList()
+                .block();
+
+        if(allMovies.size() < 1){
+            return null;
+        }
+
+        Movie topRatedMovie = new Movie();
+
+        for(int i = 0; i < allMovies.size(); i++){
+            if(topRatedMovie == null){
+                topRatedMovie = allMovies.get(i);
+            } else if (getMovieRating(allMovies.get(i).getId()) > getMovieRating(topRatedMovie.getId())) {
+                topRatedMovie = allMovies.get(i);
+            }
+        }
+        return topRatedMovie;
     }
 
 //Get all reviews by movieId
