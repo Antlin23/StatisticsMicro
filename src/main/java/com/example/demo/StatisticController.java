@@ -6,6 +6,7 @@ import reactor.core.publisher.Mono;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @RestController
@@ -90,10 +91,13 @@ public class StatisticController {
         Movie topRatedMovie = new Movie();
 
         for(int i = 0; i < allMovies.size(); i++){
-            if(topRatedMovie == null){
+            System.out.println(allMovies.get(i).getTitle());
+            if (topRatedMovie.getTitle() == null || topRatedMovie.getTitle().isEmpty()) {
                 topRatedMovie = allMovies.get(i);
-            } else if (getMovieRating(allMovies.get(i).getId()) > getMovieRating(topRatedMovie.getId())) {
-                topRatedMovie = allMovies.get(i);
+            } else if (getMovieRating(allMovies.get(i).getId()) != null) {
+                if(getMovieRating(allMovies.get(i).getId()) > getMovieRating(topRatedMovie.getId())){
+                    topRatedMovie = allMovies.get(i);
+                }
             }
         }
         return topRatedMovie;
